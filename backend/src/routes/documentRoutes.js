@@ -1,34 +1,26 @@
-// Rotas de documentos: endpoints + middleware de upload (multer/diskStorage).
-
-const fs = require('fs');
-const path = require('path');
-const { randomUUID } = require('crypto');
+const { randomUUID } = require('node:crypto');
+const { mkdir } = require('node:fs');
+const path = require('node:path');
 const express = require('express');
 const multer = require('multer');
 const documentController = require('../controllers/documentController');
-const { getStorageDir } = require('../repositories/documentRepository');
 
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
-
-// Armazenamento estritamente local: arquivos gravados em backend/storage com
-// nome único gerado pelo servidor (evita colisões e path traversal).
+const storageDirectory = path.resolve(__dirname, '../../storage');
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const storageDir = getStorageDir();
-    fs.mkdirSync(storageDir, { recursive: true });
-    cb(null, storageDir);
+  destination(req, file, callback) {
+    mkdir(storageDirectory, { recursive: true }, (error) => {
+      callback(error, storageDirectory);
+    });
   },
-  filename: (req, file, cb) => {
-    cb(null, `${randomUUID()}${path.extname(file.originalname)}`);
+  filename(req, file, callback) {
+    callback(null, randomUUID());
   },
 });
-
-const upload = multer({ storage, limits: { fileSize: MAX_FILE_SIZE_BYTES } });
-
+const upload = multer({ storage });
 const router = express.Router();
 
-router.post('/upload', upload.single('file'), documentController.uploadDocument);
-router.get('/documents', documentController.listDocuments);
-router.get('/documents/:id/download', documentController.downloadDocument);
+router.post('/upload', upload.single('file'), documentController.upload);
+router.get('/documents', documentController.list);
+router.get('/documents/:id/download', documentController.download);
 
 module.exports = router;

@@ -45,15 +45,16 @@ Descreva em uma frase o que o sistema deve entregar.
 | id           | string | Identificador único do documento   |
 | originalName | string | Nome original do arquivo enviado   |
 | size         | number | Tamanho em bytes                   |
-| uploadedAt   | string | Data/hora do upload (ISO 8601)     |
+| createdAt    | string | Data/hora do upload (ISO 8601)     |
 | owner        | string | Identificador do usuário dono      |
 
 ## 6. Contratos de API
 
 ### POST /upload
 
-- Entrada: arquivo (multipart/form-data)
-- Saída: metadados do documento criado
+- Entrada: um arquivo no campo `file` (multipart/form-data)
+- Saída: HTTP 201 com os metadados do documento criado
+- Erros: HTTP 400 quando o arquivo estiver ausente ou o campo for inválido
 
 ### GET /documents
 
@@ -62,6 +63,15 @@ Descreva em uma frase o que o sistema deve entregar.
 ### GET /documents/:id/download
 
 - Saída: conteúdo binário do arquivo
+- Erros: HTTP 404 quando o documento ou o arquivo não existir
+
+Os erros retornam JSON com o campo `message`. Os caminhos internos dos arquivos
+não são expostos nos metadados.
+
+Nesta fase não há autenticação: todos os documentos recebem `owner: "anonimo"`
+e a listagem é compartilhada. Os arquivos ficam em `backend/storage`, com nomes
+únicos gerados pelo servidor. Os metadados ficam em memória e são perdidos ao
+reiniciar o backend; os arquivos permanecem no disco.
 
 ## 7. Decisões arquiteturais
 

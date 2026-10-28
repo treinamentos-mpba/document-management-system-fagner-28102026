@@ -1,47 +1,55 @@
-import { getDownloadUrl } from '../services/documentsApi';
+import DownloadButton from './DownloadButton.jsx';
 
-function formatSize(bytes) {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
+  dateStyle: 'short',
+  timeStyle: 'short',
+});
+
+function formatSize(size) {
+  if (!Number.isFinite(size) || size < 0) return 'Tamanho indisponivel';
+  if (size < 1024) return `${size} B`;
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function formatDate(isoDate) {
-  return new Date(isoDate).toLocaleString('pt-BR');
+function formatDate(value) {
+  const date = value ? new Date(value) : null;
+  return date && !Number.isNaN(date.getTime())
+    ? dateFormatter.format(date)
+    : 'Data indisponivel';
 }
 
-// Lista de documentos com link de download.
-export default function DocumentList({ documents }) {
-  if (documents.length === 0) {
-    return <p>Nenhum documento enviado ainda.</p>;
-  }
-
+export default function DocumentList({ documents, loading, error, onRefresh }) {
   return (
-    <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-      <thead>
-        <tr>
-          <th style={{ textAlign: 'left' }}>Nome</th>
-          <th style={{ textAlign: 'left' }}>Tamanho</th>
-          <th style={{ textAlign: 'left' }}>Enviado em</th>
-          <th style={{ textAlign: 'left' }}>Dono</th>
-          <th style={{ textAlign: 'left' }}>Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        {documents.map((document) => (
-          <tr key={document.id}>
-            <td>{document.originalName}</td>
-            <td>{formatSize(document.size)}</td>
-            <td>{formatDate(document.uploadedAt)}</td>
-            <td>{document.owner}</td>
-            <td>
-              <a href={getDownloadUrl(document.id)} download={document.originalName}>
-                Baixar
-              </a>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <section className="documents-section" aria-labelledby="documents-title">
+      <div className="section-heading">
+        <h2 id="documents-title">Documentos <span className="count">{documents.length}</span></h2>
+        <button type="button" className="secondary-button" onClick={onRefresh} disabled={loading}>
+          Atualizar
+        </button>
+      </div>
+      {loading && <p className="empty-state" role="status">Carregando documentos...</p>}
+      {error && <p className="error" role="alert">{error}</p>}
+      {!loading && !error && documents.length === 0 && (
+        <p className="empty-state">Nenhum documento enviado.</p>
+      )}
+      {documents.length > 0 && (
+        <ul className="document-list" aria-busy={loading}>
+          {documents.map((document) => (
+            <li className="document-row" key={document.id}>
+              <div className="document-details">
+                <h3>{document.originalName || 'Documento sem nome'}</h3>
+                <div className="document-metadata">
+                  <span>{formatSize(document.size)}</span>
+                  <span>{formatDate(document.createdAt)}</span>
+                  {document.owner && <span>{document.owner}</span>}
+                </div>
+              </div>
+              <DownloadButton document={document} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }

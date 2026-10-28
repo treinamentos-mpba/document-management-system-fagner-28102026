@@ -1,8 +1,31 @@
 # Especificação - Document Management System (DMS)
 
-> Especificação completa gerada a partir de `spec-template.md` (Passo 1 -
-> Spec Driven Development). Este documento é a fonte de verdade para os
-> próximos passos.
+> Plano original gerado a partir de `spec-template.md` (Passo 1 -
+> Spec Driven Development). As seções abaixo registram esse planejamento;
+> as diferenças da implementação integrada estão descritas a seguir.
+
+## Contrato vigente após a integração com a main
+
+A integração adotou o backend da `main`, substituindo os pontos divergentes
+do plano original:
+
+- Metadados públicos: `id`, `originalName`, `size`, `createdAt` (ISO 8601) e
+  `owner` fixo em `anonimo`; o caminho interno `filePath` não é exposto.
+- A listagem mantém a ordem de inserção, sem ordenação por data.
+- O upload recebe um único arquivo no campo `file`; não há configuração
+  de dono nem limite explícito de tamanho nesta implementação.
+- Os arquivos ficam em `backend/storage`, sem suporte a `STORAGE_DIR`;
+  `PORT` continua configurável, com padrão `3000`.
+- Erros usam `{ "message": "<mensagem>" }`: upload sem arquivo retorna
+  `400`; documento inexistente ou arquivo removido retorna `404`;
+  falhas internas retornam `500`, com detalhes apenas no log.
+- A interface usa `UploadComponent`, `DocumentList` e `DownloadButton`,
+  montados em `App.jsx`, com cliente `fetch` em `services/api.js`.
+- `backend/test/app.test.js` cobre o contrato vigente, incluindo upload,
+  listagem, download, colisões de nomes e respostas de erro.
+
+Os contratos e decisões conflitantes no plano original abaixo foram
+substituídos por este contrato vigente.
 
 ## 1. Objetivo
 

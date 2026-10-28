@@ -1,38 +1,31 @@
-// Controllers de documentos: validação básica e mapeamento HTTP.
-
 const documentService = require('../services/documentService');
 
-function uploadDocument(req, res) {
+function upload(req, res) {
   if (!req.file) {
-    return res.status(400).json({ error: 'Nenhum arquivo foi enviado.' });
+    return res.status(400).json({ message: 'Envie um arquivo no campo file.' });
   }
 
-  const document = documentService.createDocument({
-    originalName: req.file.originalname,
-    storedName: req.file.filename,
-    mimeType: req.file.mimetype,
-    size: req.file.size,
-    owner: req.body && req.body.owner,
-  });
-
-  return res.status(201).json(document);
+  const document = documentService.registerDocument(req.file);
+  res.status(201).json(document);
 }
 
-function listDocuments(req, res) {
-  return res.json(documentService.listDocuments());
+function list(req, res) {
+  res.json(documentService.listDocuments());
 }
 
-function downloadDocument(req, res, next) {
-  const download = documentService.getDocumentForDownload(req.params.id);
-  if (!download) {
-    return res.status(404).json({ error: 'Documento não encontrado.' });
-  }
+function download(req, res, next) {
+  const document = documentService.getDocument(req.params.id);
 
-  return res.download(download.filePath, download.originalName, (err) => {
-    if (err && !res.headersSent) {
-      next(err);
+  res.download(document.filePath, document.originalName, (error) => {
+    if (!error) return;
+
+    if (error.code === 'ENOENT') {
+      error.status = 404;
+      error.message = 'Arquivo do documento nao encontrado.';
     }
+
+    next(error);
   });
 }
 
-module.exports = { uploadDocument, listDocuments, downloadDocument };
+module.exports = { upload, list, download };

@@ -1,48 +1,34 @@
-// Regras de negócio de documentos. Depende apenas do repositório.
-
-const path = require('path');
-const { randomUUID } = require('crypto');
 const documentRepository = require('../repositories/documentRepository');
 
-const DEFAULT_OWNER = 'anonymous';
-
-// Remove o campo interno storedName da representação exposta pela API.
-function toPublicDocument({ storedName, ...publicFields }) {
-  return publicFields;
+function toMetadata({ filePath, ...metadata }) {
+  return metadata;
 }
 
-function createDocument({ originalName, storedName, mimeType, size, owner }) {
-  const document = {
-    id: randomUUID(),
-    originalName,
-    storedName,
-    mimeType,
-    size,
-    uploadedAt: new Date().toISOString(),
-    owner: owner && owner.trim() ? owner.trim() : DEFAULT_OWNER,
-  };
+function registerDocument(file) {
+  const document = documentRepository.save({
+    id: file.filename,
+    originalName: file.originalname,
+    size: file.size,
+    createdAt: new Date().toISOString(),
+    owner: 'anonimo',
+    filePath: file.path,
+  });
 
-  documentRepository.save(document);
-  return toPublicDocument(document);
+  return toMetadata(document);
 }
 
 function listDocuments() {
-  return documentRepository
-    .findAll()
-    .sort((a, b) => b.uploadedAt.localeCompare(a.uploadedAt))
-    .map(toPublicDocument);
+  return documentRepository.findAll().map(toMetadata);
 }
 
-function getDocumentForDownload(id) {
+function getDocument(id) {
   const document = documentRepository.findById(id);
+
   if (!document) {
-    return null;
+    throw Object.assign(new Error('Documento nao encontrado.'), { status: 404 });
   }
 
-  return {
-    originalName: document.originalName,
-    filePath: path.join(documentRepository.getStorageDir(), document.storedName),
-  };
+  return document;
 }
 
-module.exports = { createDocument, listDocuments, getDocumentForDownload };
+module.exports = { registerDocument, listDocuments, getDocument };
