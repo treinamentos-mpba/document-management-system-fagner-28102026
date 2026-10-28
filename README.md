@@ -12,5 +12,37 @@ Remember, it's self-paced so feel free to take a break! ☕️
 
 ---
 
+## Como executar o projeto
+
+Especificação completa: [docs/specs/dms-spec.md](./docs/specs/dms-spec.md).
+
+### Backend (Node.js + Express)
+
+```bash
+cd backend
+npm install
+npm run dev   # ou npm start
+```
+
+- Servidor em `http://localhost:3000`
+- Endpoints: `GET /health`, `POST /upload`, `GET /documents`,
+  `GET /documents/:id/download`
+- Variáveis de ambiente: `PORT` (padrão `3000`) e `STORAGE_DIR`
+  (padrão `backend/storage`)
+- Testes: `npm test`
+
+### Frontend (React + Vite)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+- Interface em `http://localhost:5173` (o proxy `/api` encaminha para o
+  backend na porta 3000 — mantenha os dois rodando)
+
+---
+
 &copy; 2025 GitHub &bull; [Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/code_of_conduct.md) &bull; [MIT License](https://gh.io/mit)
 
