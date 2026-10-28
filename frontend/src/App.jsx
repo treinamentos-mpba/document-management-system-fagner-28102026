@@ -1,20 +1,52 @@
-// Seed do componente raiz do Document Management System.
-//
-// Este é apenas um ponto de partida mínimo. Durante o Passo 3 você vai usar o
-// Agent Mode do GitHub Copilot para construir os componentes:
-//   - components/UploadComponent
-//   - components/DocumentList
-//   - components/DownloadButton
-// e o serviço services/ que consome a API do backend via fetch.
+import { useEffect, useState } from 'react';
+import UploadComponent from './components/UploadComponent.jsx';
+import DocumentList from './components/DocumentList.jsx';
+import { getDocuments } from './services/api.js';
+import './App.css';
 
 export default function App() {
+  const [documents, setDocuments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [revision, setRevision] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true);
+    setError('');
+
+    async function loadDocuments() {
+      try {
+        const result = await getDocuments({ signal: controller.signal });
+        if (!controller.signal.aborted) setDocuments(result);
+      } catch (error) {
+        if (!controller.signal.aborted) setError(error.message);
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    }
+
+    loadDocuments();
+    return () => controller.abort();
+  }, [revision]);
+
+  function refreshDocuments() {
+    setRevision((current) => current + 1);
+  }
+
   return (
-    <main style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem' }}>
-      <h1>Document Management System</h1>
-      <p>
-        Seed do frontend. Construa a interface durante o Passo 3 usando o Agent
-        Mode do GitHub Copilot.
-      </p>
+    <main className="app-shell">
+      <header className="app-header">
+        <span className="brand">DMS</span>
+        <h1>Gestao de documentos</h1>
+      </header>
+      <UploadComponent onUpload={refreshDocuments} />
+      <DocumentList
+        documents={documents}
+        loading={loading}
+        error={error}
+        onRefresh={refreshDocuments}
+      />
     </main>
   );
 }
