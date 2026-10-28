@@ -6,7 +6,7 @@
 
 ## 1. Objetivo
 
-Disponibilizar um sistema web simples para que usuários enviem, listem e
+Disponibilizar um sistema web simples para que usuários enviem, listem e 
 baixem documentos, com arquivos gravados no filesystem local da aplicação e
 metadados mantidos em memória.
 
