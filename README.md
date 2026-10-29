@@ -43,4 +43,39 @@ npm test
 
 ---
 
+## Como executar o projeto
+
+Especificação completa: [docs/specs/dms-spec.md](./docs/specs/dms-spec.md).
+
+### Backend (Node.js + Express)
+
+```bash
+cd backend
+npm install
+npm run dev   # ou npm start
+```
+
+- Servidor em `http://localhost:3000`
+- Endpoints: `GET /health`, `POST /upload`, `GET /documents`,
+  `GET /documents/:id/download`
+- Variável de ambiente: `PORT` (padrão `3000`).
+  O armazenamento local é fixo em `backend/storage`.
+- Testes: `npm test`
+
+### Frontend (React + Vite)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+- Interface em `http://localhost:5173` (o proxy `/api` encaminha para o
+  backend na porta 3000 — mantenha os dois rodando)
+- Componentes: `UploadComponent`, `DocumentList` e `DownloadButton`;
+  cliente `fetch` em `frontend/src/services/api.js`.
+- Testes: `npm test`; build de produção: `npm run build`.
+
+---
+
 &copy; 2025 GitHub &bull; [Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/code_of_conduct.md) &bull; [MIT License](https://gh.io/mit)
